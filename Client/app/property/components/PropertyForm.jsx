@@ -2,6 +2,21 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { propertyTypes } from "../constants/propertyTypes";
+import {
+  User,
+  Phone,
+  Mail,
+  Facebook,
+  Send,
+  Instagram,
+  Music2,
+  Home,
+  MapPin,
+  BedDouble,
+  Bath,
+  Ruler,
+  Building2,
+} from "lucide-react";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -63,19 +78,24 @@ function validateForm(formData) {
   // Agent required
   if (!agentName) errors.agentName = "Agent name is required.";
 
-  // Require at least one contact method
-  const hasPhone = phone.length > 0;
-  const hasEmail = email.length > 0;
-
-  if (!hasPhone && !hasEmail) {
-    errors.agentContact = "Add at least a phone number or an email.";
+  // Phone & Email are required
+  if (!phone) {
+    errors.agentPhone = "Phone number is required.";
+  } else if (!isValidPhone(phone)) {
+    errors.agentPhone = "Phone number looks too short.";
   }
 
-  if (hasEmail && !emailRegex.test(email)) {
+  if (!email) {
+    errors.agentEmail = "Email is required.";
+  } else if (!emailRegex.test(email)) {
     errors.agentEmail = "Please enter a valid email address.";
   }
 
-  if (hasPhone && !isValidPhone(phone)) {
+  if (!emailRegex.test(email)) {
+    errors.agentEmail = "Please enter a valid email address.";
+  }
+
+  if (!isValidPhone(phone)) {
     errors.agentPhone = "Phone number looks too short.";
   }
 
@@ -94,14 +114,30 @@ function ErrorText({ children }) {
   return <p className="mt-1 text-sm text-red-600">{children}</p>;
 }
 
+function InputWithIcon({ icon: Icon, inputProps, hasError }) {
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
+        <Icon size={16} />
+      </span>
+
+      <input
+        {...inputProps}
+        className={[
+          "form-input-focus h-10 w-full rounded-md border bg-white py-2 pr-4 pl-10 text-gray-900",
+          hasError ? "border-red-300 ring-1 ring-red-200" : "border-gray-300",
+        ].join(" ")}
+      />
+    </div>
+  );
+}
+
 function FileInput({ label, onChange, onClear, accept, file }) {
   const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
 
   return (
     <div className="rounded-lg border border-gray-200 p-4">
-      <div className="mb-2 text-sm font-medium text-gray-700">
-        {label} <span className="text-xs text-gray-500">(optional)</span>
-      </div>
+      <div className="mb-2 text-sm font-medium text-gray-700">{label}</div>
 
       <div className="flex items-center gap-3">
         <label
@@ -175,9 +211,7 @@ export default function PropertyForm({
   onInputChange,
   onImageChange,
   onAgentPhotoChange,
-  onAgentQrChange,
   onClearAgentPhoto,
-  onClearAgentQr,
   onRemoveImage,
   onSubmit,
   onPropertyTypeSelect,
@@ -235,6 +269,10 @@ export default function PropertyForm({
         agentName: true,
         agentPhone: true,
         agentEmail: true,
+        agentFacebook: true,
+        agentTelegram: true,
+        agentInstagram: true,
+        agentTiktok: true,
         agentContact: true,
       }));
     }
@@ -306,7 +344,7 @@ export default function PropertyForm({
         </p>
       </div>
 
-      {/* Optional summary */}
+      {/* Error summary */}
       {Object.keys(errors).length > 0 && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Please fix the highlighted fields below.
@@ -331,25 +369,27 @@ export default function PropertyForm({
               >
                 Title <span className="text-red-500">*</span>
               </label>
-              <input
-                ref={(n) => (fieldRefs.current.propertyTitle = n)}
-                type="text"
-                id="propertyTitle"
-                name="propertyTitle"
-                value={formData.propertyTitle}
-                onChange={onInputChange}
-                onBlur={() => {
-                  markTouched("propertyTitle");
-                  validateAndSet(false);
+              <InputWithIcon
+                icon={Home}
+                hasError={touched.propertyTitle && errors.propertyTitle}
+                inputProps={{
+                  ref: (n) => (fieldRefs.current.propertyTitle = n),
+                  type: "text",
+                  id: "propertyTitle",
+                  name: "propertyTitle",
+                  value: formData.propertyTitle,
+                  onChange: onInputChange,
+                  onBlur: () => {
+                    markTouched("propertyTitle");
+                    validateAndSet(false);
+                  },
+                  placeholder: "Beautiful 3BR Villa in Phnom Penh",
+                  "aria-invalid": Boolean(
+                    touched.propertyTitle && errors.propertyTitle
+                  ),
                 }}
-                className={fieldClass(
-                  touched.propertyTitle && errors.propertyTitle
-                )}
-                placeholder="e.g., Beautiful 3BR Villa in Phnom Penh"
-                aria-invalid={Boolean(
-                  touched.propertyTitle && errors.propertyTitle
-                )}
               />
+
               <ErrorText>
                 {touched.propertyTitle ? errors.propertyTitle : ""}
               </ErrorText>
@@ -362,21 +402,25 @@ export default function PropertyForm({
               >
                 Address <span className="text-red-500">*</span>
               </label>
-              <input
-                ref={(n) => (fieldRefs.current.address = n)}
-                type="text"
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={onInputChange}
-                onBlur={() => {
-                  markTouched("address");
-                  validateAndSet(false);
+              <InputWithIcon
+                icon={MapPin}
+                hasError={touched.address && errors.address}
+                inputProps={{
+                  ref: (n) => (fieldRefs.current.address = n),
+                  type: "text",
+                  id: "address",
+                  name: "address",
+                  value: formData.address,
+                  onChange: onInputChange,
+                  onBlur: () => {
+                    markTouched("address");
+                    validateAndSet(false);
+                  },
+                  placeholder: "Full address",
+                  "aria-invalid": Boolean(touched.address && errors.address),
                 }}
-                className={fieldClass(touched.address && errors.address)}
-                placeholder="Full address"
-                aria-invalid={Boolean(touched.address && errors.address)}
               />
+
               <ErrorText>{touched.address ? errors.address : ""}</ErrorText>
             </div>
 
@@ -394,6 +438,7 @@ export default function PropertyForm({
                   <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
                     $
                   </span>
+
                   <input
                     ref={(n) => (fieldRefs.current.price = n)}
                     type="text"
@@ -408,12 +453,12 @@ export default function PropertyForm({
                       validateAndSet(false);
                     }}
                     className={[
-                      fieldClass(touched.price && errors.price),
-                      "pl-7 text-right tabular-nums",
+                      "form-input-focus h-10 w-full rounded-md border bg-white py-2 pr-4 pl-10 text-right text-gray-900 tabular-nums",
+                      touched.price && errors.price
+                        ? "border-red-300 ring-1 ring-red-200"
+                        : "border-gray-300",
                     ].join(" ")}
                     placeholder="0"
-                    min="0"
-                    step="1"
                     aria-invalid={Boolean(touched.price && errors.price)}
                   />
                 </div>
@@ -444,7 +489,7 @@ export default function PropertyForm({
                       validateAndSet(false);
                     }}
                     className={[
-                      "form-input-focus flex h-10 w-full items-center justify-between rounded-md border bg-white px-4 py-2 text-left text-gray-900",
+                      "form-input-focus relative flex h-10 w-full items-center justify-between rounded-md border bg-white py-2 pr-4 pl-10 text-left text-gray-900",
                       touched.propertyType && errors.propertyType
                         ? "border-red-300 ring-1 ring-red-200"
                         : "border-gray-300",
@@ -452,6 +497,10 @@ export default function PropertyForm({
                     aria-haspopup="listbox"
                     aria-expanded={isPropertyTypeOpen}
                   >
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
+                      <Building2 size={16} />
+                    </span>
+
                     <span
                       className={selectedPropertyType ? "" : "text-gray-400"}
                     >
@@ -459,6 +508,7 @@ export default function PropertyForm({
                         ? selectedPropertyType.label
                         : "Select a type…"}
                     </span>
+
                     <span className="ml-2 text-gray-500">▾</span>
                   </button>
 
@@ -501,25 +551,28 @@ export default function PropertyForm({
                   htmlFor="bedrooms"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Bedrooms{" "}
-                  <span className="text-xs text-gray-500">(optional)</span>
+                  Bedrooms
                 </label>
-                <input
-                  ref={(n) => (fieldRefs.current.bedrooms = n)}
-                  type="number"
-                  id="bedrooms"
-                  name="bedrooms"
-                  value={formData.bedrooms}
-                  onChange={onInputChange}
-                  onBlur={() => {
-                    markTouched("bedrooms");
-                    validateAndSet(false);
+                <InputWithIcon
+                  icon={BedDouble}
+                  hasError={touched.bedrooms && errors.bedrooms}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.bedrooms = n),
+                    type: "number",
+                    id: "bedrooms",
+                    name: "bedrooms",
+                    value: formData.bedrooms,
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("bedrooms");
+                      validateAndSet(false);
+                    },
+                    placeholder: "0",
+                    min: "0",
+                    step: "1",
                   }}
-                  className={fieldClass(touched.bedrooms && errors.bedrooms)}
-                  placeholder="0"
-                  min="0"
-                  step="1"
                 />
+
                 <ErrorText>{touched.bedrooms ? errors.bedrooms : ""}</ErrorText>
               </div>
 
@@ -528,25 +581,28 @@ export default function PropertyForm({
                   htmlFor="bathrooms"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Bathrooms{" "}
-                  <span className="text-xs text-gray-500">(optional)</span>
+                  Bathrooms
                 </label>
-                <input
-                  ref={(n) => (fieldRefs.current.bathrooms = n)}
-                  type="number"
-                  id="bathrooms"
-                  name="bathrooms"
-                  value={formData.bathrooms}
-                  onChange={onInputChange}
-                  onBlur={() => {
-                    markTouched("bathrooms");
-                    validateAndSet(false);
+                <InputWithIcon
+                  icon={Bath}
+                  hasError={touched.bathrooms && errors.bathrooms}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.bathrooms = n),
+                    type: "number",
+                    id: "bathrooms",
+                    name: "bathrooms",
+                    value: formData.bathrooms,
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("bathrooms");
+                      validateAndSet(false);
+                    },
+                    placeholder: "0",
+                    min: "0",
+                    step: "1",
                   }}
-                  className={fieldClass(touched.bathrooms && errors.bathrooms)}
-                  placeholder="0"
-                  min="0"
-                  step="1"
                 />
+
                 <ErrorText>
                   {touched.bathrooms ? errors.bathrooms : ""}
                 </ErrorText>
@@ -557,25 +613,28 @@ export default function PropertyForm({
                   htmlFor="size"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Size (sqm){" "}
-                  <span className="text-xs text-gray-500">(optional)</span>
+                  Size (sqm)
                 </label>
-                <input
-                  ref={(n) => (fieldRefs.current.size = n)}
-                  type="number"
-                  id="size"
-                  name="size"
-                  value={formData.size}
-                  onChange={onInputChange}
-                  onBlur={() => {
-                    markTouched("size");
-                    validateAndSet(false);
+                <InputWithIcon
+                  icon={Ruler}
+                  hasError={touched.size && errors.size}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.size = n),
+                    type: "number",
+                    id: "size",
+                    name: "size",
+                    value: formData.size,
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("size");
+                      validateAndSet(false);
+                    },
+                    placeholder: "0",
+                    min: "0",
+                    step: "1",
                   }}
-                  className={fieldClass(touched.size && errors.size)}
-                  placeholder="0"
-                  min="0"
-                  step="1"
                 />
+
                 <ErrorText>{touched.size ? errors.size : ""}</ErrorText>
               </div>
             </div>
@@ -585,8 +644,7 @@ export default function PropertyForm({
                 htmlFor="description"
                 className="mb-1 block text-sm font-medium text-gray-700"
               >
-                Description{" "}
-                <span className="text-xs text-gray-500">(optional)</span>
+                Description
               </label>
               <textarea
                 id="description"
@@ -618,38 +676,28 @@ export default function PropertyForm({
               >
                 Agent Name <span className="text-red-500">*</span>
               </label>
-              <input
-                ref={(n) => (fieldRefs.current.agentName = n)}
-                type="text"
-                id="agentName"
-                name="agentName"
-                value={formData.agentName}
-                onChange={onInputChange}
-                onBlur={() => {
-                  markTouched("agentName");
-                  validateAndSet(false);
+              <InputWithIcon
+                icon={User}
+                hasError={touched.agentName && errors.agentName}
+                inputProps={{
+                  ref: (n) => (fieldRefs.current.agentName = n),
+                  type: "text",
+                  id: "agentName",
+                  name: "agentName",
+                  value: formData.agentName,
+                  onChange: onInputChange,
+                  onBlur: () => {
+                    markTouched("agentName");
+                    validateAndSet(false);
+                  },
+                  placeholder: "Sok Sokha",
+                  "aria-invalid": Boolean(
+                    touched.agentName && errors.agentName
+                  ),
                 }}
-                className={fieldClass(touched.agentName && errors.agentName)}
-                placeholder="e.g., Alex Brave"
               />
-              <ErrorText>{touched.agentName ? errors.agentName : ""}</ErrorText>
-            </div>
 
-            {/* Contact requirement note */}
-            <div
-              ref={(n) => (fieldRefs.current.agentContact = n)}
-              className={[
-                "rounded-md border p-3 text-sm",
-                touched.agentContact && errors.agentContact
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-gray-200 bg-gray-50 text-gray-700",
-              ].join(" ")}
-            >
-              Add at least <span className="font-medium">one</span>: phone or
-              email.
-              <ErrorText>
-                {touched.agentContact ? errors.agentContact : ""}
-              </ErrorText>
+              <ErrorText>{touched.agentName ? errors.agentName : ""}</ErrorText>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -658,26 +706,28 @@ export default function PropertyForm({
                   htmlFor="agentPhone"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Phone{" "}
-                  <span className="text-xs text-gray-500">(optional)</span>
+                  Phone <span className="text-red-500">*</span>
                 </label>
-                <input
-                  ref={(n) => (fieldRefs.current.agentPhone = n)}
-                  type="tel"
-                  id="agentPhone"
-                  name="agentPhone"
-                  value={formData.agentPhone}
-                  onChange={onInputChange}
-                  onBlur={() => {
-                    markTouched("agentPhone");
-                    markTouched("agentContact");
-                    validateAndSet(false);
+
+                <InputWithIcon
+                  icon={Phone}
+                  hasError={touched.agentPhone && errors.agentPhone}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.agentPhone = n),
+                    type: "tel",
+                    id: "agentPhone",
+                    name: "agentPhone",
+                    value: formData.agentPhone,
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("agentPhone");
+                      markTouched("agentContact");
+                      validateAndSet(false);
+                    },
+                    placeholder: "+855...",
                   }}
-                  className={fieldClass(
-                    touched.agentPhone && errors.agentPhone
-                  )}
-                  placeholder="+855..."
                 />
+
                 <ErrorText>
                   {touched.agentPhone ? errors.agentPhone : ""}
                 </ErrorText>
@@ -688,48 +738,154 @@ export default function PropertyForm({
                   htmlFor="agentEmail"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Email{" "}
-                  <span className="text-xs text-gray-500">(optional)</span>
+                  Email <span className="text-red-500">*</span>
                 </label>
-                <input
-                  ref={(n) => (fieldRefs.current.agentEmail = n)}
-                  type="email"
-                  id="agentEmail"
-                  name="agentEmail"
-                  value={formData.agentEmail}
-                  onChange={onInputChange}
-                  onBlur={() => {
-                    markTouched("agentEmail");
-                    markTouched("agentContact");
-                    validateAndSet(false);
+
+                <InputWithIcon
+                  icon={Mail}
+                  hasError={touched.agentEmail && errors.agentEmail}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.agentEmail = n),
+                    type: "email",
+                    id: "agentEmail",
+                    name: "agentEmail",
+                    value: formData.agentEmail,
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("agentEmail");
+                      markTouched("agentContact");
+                      validateAndSet(false);
+                    },
+                    placeholder: "agent@example.com",
                   }}
-                  className={fieldClass(
-                    touched.agentEmail && errors.agentEmail
-                  )}
-                  placeholder="agent@example.com"
                 />
+
                 <ErrorText>
                   {touched.agentEmail ? errors.agentEmail : ""}
                 </ErrorText>
               </div>
+
+              <div>
+                <label
+                  htmlFor="agentFacebook"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  Facebook (name / page)
+                </label>
+
+                <InputWithIcon
+                  icon={Facebook}
+                  hasError={false}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.agentFacebook = n),
+                    type: "text",
+                    id: "agentFacebook",
+                    name: "agentFacebook",
+                    value: formData.agentFacebook || "",
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("agentFacebook");
+                      markTouched("agentContact");
+                      validateAndSet(false);
+                    },
+                    placeholder: "Sokha Realty",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="agentTelegram"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  Telegram (username / number)
+                </label>
+
+                <InputWithIcon
+                  icon={Send}
+                  hasError={false}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.agentTelegram = n),
+                    type: "text",
+                    id: "agentTelegram",
+                    name: "agentTelegram",
+                    value: formData.agentTelegram || "",
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("agentTelegram");
+                      markTouched("agentContact");
+                      validateAndSet(false);
+                    },
+                    placeholder: "@sokha_agent",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="agentInstagram"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  Instagram (username)
+                </label>
+
+                <InputWithIcon
+                  icon={Instagram}
+                  hasError={false}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.agentInstagram = n),
+                    type: "text",
+                    id: "agentInstagram",
+                    name: "agentInstagram",
+                    value: formData.agentInstagram || "",
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("agentInstagram");
+                      markTouched("agentContact");
+                      validateAndSet(false);
+                    },
+                    placeholder: "sokha.realty",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="agentTiktok"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  TikTok (username)
+                </label>
+
+                <InputWithIcon
+                  icon={Music2}
+                  hasError={false}
+                  inputProps={{
+                    ref: (n) => (fieldRefs.current.agentTiktok = n),
+                    type: "text",
+                    id: "agentTiktok",
+                    name: "agentTiktok",
+                    value: formData.agentTiktok || "",
+                    onChange: onInputChange,
+                    onBlur: () => {
+                      markTouched("agentTiktok");
+                      markTouched("agentContact");
+                      validateAndSet(false);
+                    },
+                    placeholder: "@sokha_realestate",
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Media: agent photo + qr remain as you already have */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* Media: agent photo */}
+            <div className="grid grid-cols-1">
               <FileInput
                 label="Agent Photo"
                 accept="image/*"
                 file={formData.agentPhoto}
                 onChange={onAgentPhotoChange}
                 onClear={onClearAgentPhoto}
-              />
-
-              <FileInput
-                label="Agent QR Code"
-                accept="image/*"
-                file={formData.agentQrCode}
-                onChange={onAgentQrChange}
-                onClear={onClearAgentQr}
               />
             </div>
           </div>
