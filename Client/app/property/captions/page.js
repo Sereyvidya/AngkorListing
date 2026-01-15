@@ -1,8 +1,7 @@
-// app/property/captions/page.js
 export default function CaptionsPage() {
   return (
-    <div className="bg-white rounded-lg shadow-md p-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+    <div className="rounded-lg bg-white p-8 shadow-md">
+      <h1 className="mb-2 text-2xl font-semibold text-gray-900">
         Social Captions
       </h1>
       <p className="text-gray-600">

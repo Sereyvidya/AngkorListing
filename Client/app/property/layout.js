@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const nav = [
   { href: "/property/general", label: "General Info" },
@@ -6,34 +9,84 @@ const nav = [
   { href: "/property/captions", label: "Social Captions" },
 ];
 
+function NavLinks({ variant = "sidebar" }) {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      className={
+        variant === "tabs"
+          ? "flex gap-2 overflow-x-auto"
+          : "flex flex-col gap-1"
+      }
+    >
+      {nav.map((item) => {
+        const active =
+          pathname === item.href || pathname?.startsWith(item.href + "/");
+
+        if (variant === "tabs") {
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={[
+                "rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition",
+                active
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50",
+              ].join(" ")}
+            >
+              {item.label}
+            </Link>
+          );
+        }
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={[
+              "rounded-md px-3 py-2 text-sm transition",
+              active
+                ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+                : "text-gray-700 hover:bg-gray-100",
+            ].join(" ")}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function PropertyLayout({ children }) {
   return (
     <div className="min-h-[calc(100vh-73px)] bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-6">
-          {/* Sidebar */}
-          <aside className="w-64 shrink-0">
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-3">
-              <div className="text-xs font-semibold text-gray-500 px-2 py-2">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        {/* Mobile step nav */}
+        <div className="lg:hidden">
+          <div className="mb-4 rounded-xl bg-white p-3 ring-1 ring-gray-200">
+            <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500">
+              Property Workflow
+            </div>
+            <NavLinks variant="tabs" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr] lg:gap-8">
+          {/* Desktop sidebar */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-6 rounded-xl bg-white p-3 ring-1 ring-gray-200">
+              <div className="px-2 py-2 text-xs font-semibold tracking-wide text-gray-500">
                 Property Workflow
               </div>
-
-              <nav className="flex flex-col gap-1">
-                {nav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
+              <NavLinks variant="sidebar" />
             </div>
           </aside>
 
           {/* Main */}
-          <main className="flex-1">{children}</main>
+          <main className="min-w-0">{children}</main>
         </div>
       </div>
     </div>
