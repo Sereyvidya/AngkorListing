@@ -15,12 +15,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} font-sans antialiased`}
-      >
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center gap-3">
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <header className="border-b border-gray-200 bg-white">
+          <div className="mx-auto grid max-w-[1440px] grid-cols-[240px_1fr] px-8 py-4">
+            <div className="flex items-center justify-center gap-3">
               <Image
                 src="/angkorlisting-logo.png"
                 alt="AngkorListing Logo"

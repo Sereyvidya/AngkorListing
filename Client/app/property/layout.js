@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const nav = [
-  { href: "/property/general", label: "General Info" },
+  { href: "/property/general", label: "General Information" },
   { href: "/property/flyer", label: "Flyer Builder" },
   { href: "/property/captions", label: "Social Captions" },
 ];
@@ -13,33 +13,10 @@ function NavLinks({ variant = "sidebar" }) {
   const pathname = usePathname();
 
   return (
-    <nav
-      className={
-        variant === "tabs"
-          ? "flex gap-2 overflow-x-auto"
-          : "flex flex-col gap-1"
-      }
-    >
+    <nav className={variant === "tabs" ? "flex gap-2" : "flex flex-col gap-1"}>
       {nav.map((item) => {
         const active =
           pathname === item.href || pathname?.startsWith(item.href + "/");
-
-        if (variant === "tabs") {
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={[
-                "rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition",
-                active
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50",
-              ].join(" ")}
-            >
-              {item.label}
-            </Link>
-          );
-        }
 
         return (
           <Link
@@ -63,10 +40,10 @@ function NavLinks({ variant = "sidebar" }) {
 export default function PropertyLayout({ children }) {
   return (
     <div className="min-h-[calc(100vh-73px)] bg-gray-50">
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="mx-auto w-full max-w-[1440px] p-8">
         {/* Mobile step nav */}
         <div className="lg:hidden">
-          <div className="mb-4 rounded-xl bg-white p-3 ring-1 ring-gray-200">
+          <div className="mb-8 rounded-xl bg-white p-4 ring-1 ring-gray-200">
             <div className="mb-2 text-xs font-semibold tracking-wide text-gray-500">
               Property Workflow
             </div>

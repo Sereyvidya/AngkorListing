@@ -35,23 +35,15 @@ export default function GeneralInfoPage() {
         resolve({ preview: event.target.result, name: file.name });
       reader.readAsDataURL(file);
     });
-  
+
   const handleAgentPhotoChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const img = await fileToBase64(file);
     setFormData({ agentPhoto: img });
   };
-  
-  const handleAgentQrChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const img = await fileToBase64(file);
-    setFormData({ agentQrCode: img });
-  };
-  
+
   const clearAgentPhoto = () => setFormData({ agentPhoto: null });
-  const clearAgentQr = () => setFormData({ agentQrCode: null });  
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -76,9 +68,7 @@ export default function GeneralInfoPage() {
       onInputChange={handleInputChange}
       onPropertyTypeSelect={handlePropertyTypeSelect}
       onAgentPhotoChange={handleAgentPhotoChange}
-      onAgentQrChange={handleAgentQrChange}
       onClearAgentPhoto={clearAgentPhoto}
-      onClearAgentQr={clearAgentQr}
       onImageChange={handleImageChange}
       onRemoveImage={removeImage}
       onSubmit={handleSubmit}
