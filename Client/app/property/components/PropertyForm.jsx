@@ -33,7 +33,7 @@ function isValidPhone(value = "") {
   return digits.length >= 9; // min phone number length
 }
 
-function validateForm(formData) {
+function validateForm(formData, images = []) {
   const errors = {};
 
   const title = (formData.propertyTitle || "").trim();
@@ -76,6 +76,11 @@ function validateForm(formData) {
     errors.bathrooms = "Must be 0 or more.";
   if (size !== null && (Number.isNaN(size) || size < 0))
     errors.size = "Must be 0 or more.";
+
+  // Property images
+  if (!images || images.length < 1) {
+    errors.images = "Please upload at least 1 property photo.";
+  }
 
   // Agent required
   if (!agentName) errors.agentName = "Agent name is required.";
@@ -183,7 +188,9 @@ function MultiFileInput({ icon: Icon, label, onChange, files }) {
 
   return (
     <div>
-      <div className="mb-2 text-sm font-medium text-gray-700">{label}</div>
+      <div className="mb-2 text-sm font-medium text-gray-700">
+        {label} <span className="text-red-500">*</span>
+      </div>
 
       <div className="flex items-center gap-3">
         <label
@@ -240,8 +247,23 @@ export default function PropertyForm({
     const current = propertyTypes.find(
       (t) => t.value === formData.propertyType
     );
-    return current || null; // IMPORTANT: don't default to first option
+    return current || null; // don't default to first option
   }, [formData.propertyType]);
+
+  const validateAndSetWith = (
+    nextFormData,
+    nextImages,
+    nextTouchedAll = false
+  ) => {
+    const nextErrors = validateForm(nextFormData, nextImages);
+    setErrors(nextErrors);
+
+    if (nextTouchedAll) {
+      setTouched((prev) => ({ ...prev, images: true }));
+    }
+
+    return nextErrors;
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -262,7 +284,7 @@ export default function PropertyForm({
   };
 
   const validateAndSet = (nextTouchedAll = false) => {
-    const nextErrors = validateForm(formData);
+    const nextErrors = validateForm(formData, images);
     setErrors(nextErrors);
 
     if (nextTouchedAll) {
@@ -276,6 +298,7 @@ export default function PropertyForm({
         bedrooms: true,
         bathrooms: true,
         size: true,
+        images: true,
         agentName: true,
         agentPhone: true,
         agentEmail: true,
@@ -299,6 +322,7 @@ export default function PropertyForm({
       "bedrooms",
       "bathrooms",
       "size",
+      "images",
       "agentName",
       "agentContact",
       "agentPhone",
@@ -700,44 +724,60 @@ export default function PropertyForm({
               )}
             </div>
 
-            <div>
-              <div className="space-y-4">
-                <MultiFileInput
-                  icon={Images}
-                  label="Property Images"
-                  files={images}
-                  onChange={onImageChange}
-                />
+            <div
+              ref={(n) => (fieldRefs.current.images = n)}
+              className={[
+                "rounded-lg py-3",
+                touched.images && errors.images
+                  ? "border border-red-300 bg-red-50/40"
+                  : "border border-transparent",
+              ].join(" ")}
+            >
+              <MultiFileInput
+                icon={Images}
+                label="Property Images"
+                files={images}
+                onChange={(e) => {
+                  onImageChange(e);
+                  markTouched("images");
 
-                {images?.length > 0 && (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {images.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative overflow-hidden rounded-lg border border-gray-200"
+                  const selectedCount = e.target.files?.length ?? 0;
+                  const nextImages =
+                    selectedCount > 0 ? new Array(selectedCount).fill({}) : [];
+                  validateAndSetWith(formData, nextImages, false);
+                }}
+              />
+
+              <ErrorText>{touched.images ? errors.images : ""}</ErrorText>
+
+              {images?.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative overflow-hidden rounded-lg border border-gray-200"
+                    >
+                      <img
+                        src={img.preview}
+                        alt={`Uploaded ${idx + 1}`}
+                        className="h-28 w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onRemoveImage(idx)}
+                        className="absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-xs text-gray-700 shadow hover:bg-white"
                       >
-                        <img
-                          src={img.preview}
-                          alt={`Uploaded ${idx + 1}`}
-                          className="h-28 w-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => onRemoveImage(idx)}
-                          className="absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-xs text-gray-700 shadow hover:bg-white"
-                        >
-                          Remove
-                        </button>
-                        {idx === 0 && (
-                          <div className="absolute top-2 left-2 rounded-md bg-blue-600 px-2 py-1 text-xs text-white shadow">
-                            Featured
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                        Remove
+                      </button>
+                      {idx === 0 && (
+                        <div className="absolute top-2 left-2 rounded-md bg-blue-600 px-2 py-1 text-xs text-white shadow">
+                          Featured
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>

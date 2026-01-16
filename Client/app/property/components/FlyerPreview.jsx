@@ -5,17 +5,37 @@ import PhotoGrid from "./PhotoGrid";
 
 const BASE_WIDTH = 1080;
 const BASE_HEIGHT = 1350;
-const PREVIEW_ZOOM = 1; // set to 1.1 if you want it bigger while editing
+const PREVIEW_ZOOM = 1;
 
 const PhoneIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h2.28a1 1 0 01.95.68l1.1 3.3a1 1 0 01-.24 1.02l-1.27 1.27a16 16 0 006.59 6.59l1.27-1.27a1 1 0 011.02-.24l3.3 1.1a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.82 21 3 14.18 3 6V5z" />
+  <svg
+    className="h-4 w-4 shrink-0"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 5a2 2 0 012-2h2.28a1 1 0 01.95.68l1.1 3.3a1 1 0 01-.24 1.02l-1.27 1.27a16 16 0 006.59 6.59l1.27-1.27a1 1 0 011.02-.24l3.3 1.1a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.82 21 3 14.18 3 6V5z"
+    />
   </svg>
 );
 
 const EmailIcon = () => (
-  <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+  <svg
+    className="h-4 w-4 shrink-0"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"
+    />
   </svg>
 );
 
@@ -26,7 +46,10 @@ function formatPrice(price) {
   return num.toLocaleString("en-US");
 }
 
-const FlyerPreview = forwardRef(function FlyerPreview({ formData, images }, exportRef) {
+const FlyerPreview = forwardRef(function FlyerPreview(
+  { formData, images },
+  exportRef
+) {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
 
@@ -47,7 +70,9 @@ const FlyerPreview = forwardRef(function FlyerPreview({ formData, images }, expo
   const title = formData.propertyTitle?.trim() || "New Property Listing";
   const address = formData.address?.trim() || "Address not provided";
   const priceText = formData.price ? `$${formatPrice(formData.price)}` : "";
-  const typeText = formData.propertyType ? formData.propertyType.toUpperCase() : "";
+  const typeText = formData.propertyType
+    ? formData.propertyType.toUpperCase()
+    : "";
 
   const beds = formData.bedrooms !== "" ? Number(formData.bedrooms) : null;
   const baths = formData.bathrooms !== "" ? Number(formData.bathrooms) : null;
@@ -63,9 +88,15 @@ const FlyerPreview = forwardRef(function FlyerPreview({ formData, images }, expo
 
   return (
     <div ref={containerRef} className="w-full">
-      {/* spacer to preserve layout height */}
-      <div style={{ width: BASE_WIDTH * scale, height: BASE_HEIGHT * scale }} className="relative">
-        {/* scaled stage for preview */}
+      {/* UI spacer — fluid */}
+      <div
+        className="relative"
+        style={{
+          width: BASE_WIDTH * scale,
+          height: BASE_HEIGHT * scale,
+        }}
+      >
+        {/* Scaled preview stage */}
         <div
           className="absolute inset-0"
           style={{
@@ -75,15 +106,13 @@ const FlyerPreview = forwardRef(function FlyerPreview({ formData, images }, expo
             transformOrigin: "top left",
           }}
         >
-          {/* ✅ export node: fixed 1080x1350 */}
+          {/* 🔒 EXPORT NODE — NEVER FLUID */}
           <div
             ref={exportRef}
-            className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+            className="overflow-hidden rounded-2xl border-1 border-gray-200 bg-white"
             style={{ width: BASE_WIDTH, height: BASE_HEIGHT }}
           >
-            {/* Use px-based padding + typography so it stays proportional */}
-            <div className="h-full w-full p-[48px] flex flex-col gap-[28px]">
-              {/* Top bar */}
+            <div className="flex h-full w-full flex-col gap-[28px] p-[48px]">
               <div className="flex items-start justify-between gap-[24px]">
                 <div className="min-w-0">
                   <div className="text-[16px] font-semibold tracking-[0.18em] text-gray-500">
@@ -177,7 +206,9 @@ const FlyerPreview = forwardRef(function FlyerPreview({ formData, images }, expo
                           <span>{email}</span>
                         </div>
                       )}
-                      {!phone && !email && <div className="text-white/70">Add contact info</div>}
+                      {!phone && !email && (
+                        <div className="text-white/70">Add contact info</div>
+                      )}
                     </div>
 
                     {agentQr ? (
@@ -202,7 +233,6 @@ const FlyerPreview = forwardRef(function FlyerPreview({ formData, images }, expo
               </div>
             </div>
           </div>
-          {/* end export node */}
         </div>
       </div>
     </div>
