@@ -265,6 +265,10 @@ export default function PropertyForm({
     return nextErrors;
   };
 
+  const showErrorSummary = useMemo(() => {
+    return Object.keys(errors).some((k) => touched[k]);
+  }, [errors, touched]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -381,7 +385,7 @@ export default function PropertyForm({
       </div>
 
       {/* Error summary */}
-      {Object.keys(errors).length > 0 && (
+      {showErrorSummary && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Please fix the highlighted fields below.
         </div>
