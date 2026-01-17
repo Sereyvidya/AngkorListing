@@ -109,13 +109,6 @@ function validateForm(formData, images = []) {
   return errors;
 }
 
-function fieldClass(hasError) {
-  return [
-    "form-input-focus w-full h-10 rounded-md border bg-white px-4 py-2 text-gray-900",
-    hasError ? "border-red-300 ring-1 ring-red-200" : "border-gray-300",
-  ].join(" ");
-}
-
 function ErrorText({ children }) {
   if (!children) return null;
   return <p className="mt-1 text-sm text-red-600">{children}</p>;
@@ -344,21 +337,55 @@ export default function PropertyForm({
   };
 
   const handlePropertyTypeToggle = () => {
-    setIsPropertyTypeOpen((v) => !v);
-    setTimeout(() => propertyTypeButtonRef.current?.focus(), 0);
+    setIsPropertyTypeOpen((open) => {
+      const next = !open;
+      if (next) {
+        didSelectRef.current = false; // new open session
+      }
+      return next;
+    });
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        propertyTypeRef.current &&
+        !propertyTypeRef.current.contains(event.target)
+      ) {
+        // only care if dropdown was open
+        setIsPropertyTypeOpen((wasOpen) => {
+          if (!wasOpen) return false;
+
+          // if they opened and did NOT pick anything, show error
+          if (!didSelectRef.current) {
+            setTouched((prev) => ({ ...prev, propertyType: true }));
+
+            const next = validateForm(formData, images);
+            setErrors(next);
+          }
+
+          return false;
+        });
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [formData, images]);
 
   const handleSelectType = (value) => {
+    didSelectRef.current = true;
+
     onPropertyTypeSelect(value);
-    markTouched("propertyType");
     setIsPropertyTypeOpen(false);
 
-    // revalidate on selection if user has started interacting
-    if (Object.keys(touched).length > 0) {
-      const next = validateForm({ ...formData, propertyType: value });
-      setErrors(next);
-    }
+    setTouched((prev) => ({ ...prev, propertyType: true }));
+
+    const next = validateForm({ ...formData, propertyType: value }, images);
+    setErrors(next);
   };
+
+  const didSelectRef = useRef(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -524,10 +551,6 @@ export default function PropertyForm({
                     type="button"
                     id="propertyType"
                     onClick={handlePropertyTypeToggle}
-                    onBlur={() => {
-                      markTouched("propertyType");
-                      validateAndSet(false);
-                    }}
                     className={[
                       "form-input-focus relative flex h-10 w-full items-center justify-between rounded-md border bg-white py-2 pr-4 pl-10 text-left text-gray-900",
                       touched.propertyType && errors.propertyType

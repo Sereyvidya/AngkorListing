@@ -4,8 +4,15 @@ import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import FlyerPreview from "../components/FlyerPreview";
-import { toPng } from "html-to-image";
-import jsPDF from "jspdf";
+import { hasMinimumFlyerData } from "@/app/lib/flyer/guards";
+import { makeSafeFilename } from "@/app/lib/flyer/filename";
+import { exportFlyerPNG, exportFlyerPDF } from "@/app/lib/flyer/export";
+
+const TEMPLATES = [
+  { key: "hero", label: "Hero" },
+  { key: "grid", label: "Grid" },
+  { key: "minimal", label: "Minimal" },
+];
 
 export default function FlyerPage() {
   const [template, setTemplate] = useState("hero");
@@ -16,40 +23,21 @@ export default function FlyerPage() {
   const flyerRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const hasData = useMemo(() => {
-    return (
-      (formData.propertyTitle && formData.propertyTitle.trim() !== "") ||
-      (formData.address && formData.address.trim() !== "") ||
-      images.length > 0
-    );
-  }, [formData, images]);
+  const hasData = useMemo(
+    () => hasMinimumFlyerData({ formData, images }),
+    [formData, images]
+  );
 
-  const safeFileBase = useMemo(() => {
-    const base = (formData.propertyTitle || "flyer")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-    return base || "flyer";
-  }, [formData.propertyTitle]);
-
-  const downloadDataUrl = (dataUrl, filename) => {
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = filename;
-    a.click();
-  };
+  const safeFileBase = useMemo(
+    () => makeSafeFilename(formData.propertyTitle, "flyer"),
+    [formData.propertyTitle]
+  );
 
   const exportPNG = async () => {
     if (!flyerRef.current) return;
     try {
       setIsExporting(true);
-
-      const dataUrl = await toPng(flyerRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 3,
-      });
-
-      downloadDataUrl(dataUrl, `${safeFileBase}.png`);
+      await exportFlyerPNG(flyerRef.current, { filename: safeFileBase });
     } finally {
       setIsExporting(false);
     }
@@ -59,25 +47,7 @@ export default function FlyerPage() {
     if (!flyerRef.current) return;
     try {
       setIsExporting(true);
-
-      const node = flyerRef.current;
-
-      const dataUrl = await toPng(node, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 3,
-      });
-
-      const width = node.offsetWidth;
-      const height = node.offsetHeight;
-
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "px",
-        format: [width, height],
-      });
-
-      pdf.addImage(dataUrl, "PNG", 0, 0, width, height);
-      pdf.save(`${safeFileBase}.pdf`);
+      await exportFlyerPDF(flyerRef.current, { filename: safeFileBase });
     } finally {
       setIsExporting(false);
     }
@@ -85,7 +55,7 @@ export default function FlyerPage() {
 
   if (!hasData) {
     return (
-      <div className="rounded-lg bg-white p-8 ring-1 ring-gray-200">
+      <div className="rounded-xl bg-white p-6 ring-1 ring-gray-200">
         <h1 className="mb-2 text-2xl font-semibold text-gray-900">
           Flyer Builder
         </h1>
@@ -118,36 +88,22 @@ export default function FlyerPage() {
                   <p className="text-sm text-gray-600">Portrait (1080×1350)</p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="text-sm font-medium text-gray-700">
-                    Template
-                  </div>
-                  <div className="flex rounded-lg border border-gray-200 p-1">
+                <div className="flex gap-1 rounded-lg border border-gray-200 p-1">
+                  {TEMPLATES.map(({ key, label }) => (
                     <button
+                      key={key}
                       type="button"
-                      onClick={() => setTemplate("hero")}
+                      onClick={() => setTemplate(key)}
                       className={[
                         "rounded-md px-3 py-1.5 text-sm transition",
-                        template === "hero"
+                        template === key
                           ? "bg-blue-600 text-white"
                           : "text-gray-700 hover:bg-gray-50",
                       ].join(" ")}
                     >
-                      Hero
+                      {label}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setTemplate("grid")}
-                      className={[
-                        "rounded-md px-3 py-1.5 text-sm transition",
-                        template === "grid"
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-700 hover:bg-gray-50",
-                      ].join(" ")}
-                    >
-                      Grid
-                    </button>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>

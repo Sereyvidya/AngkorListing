@@ -14,7 +14,6 @@ export const usePropertyStore = create((set) => ({
     agentPhone: "",
     agentEmail: "",
     agentPhoto: null,
-    agentQrCode: null,
   },
   images: [], // store previews/base64 strings, not File objects
 
@@ -46,7 +45,6 @@ export const usePropertyStore = create((set) => ({
         agentPhone: "",
         agentEmail: "",
         agentPhoto: null,
-        agentQrCode: null,
       },
       images: [],
     }),
